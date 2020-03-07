@@ -63,5 +63,11 @@ func (d Date) Weekday() Weekday {
 	// Aktuális hónapban eltelt napok hozzáaádása.
 	elapsedDays += d.DayOfMonth - 1
 
-	return Weekday(int(math.Mod(float64(elapsedDays+4), 7)))
+func (d Date) Weekday() Weekday {
+	elapsedDays := d.elapsedDays()
+	dayNum := int(math.Mod(float64(elapsedDays+4), 7))
+	if dayNum == 0 {
+		return Sunday
+	}
+	return Weekday(dayNum)
 }

@@ -40,6 +40,7 @@ func TestDate_Weekday(t *testing.T) {
 		{"Test date: 1970-01-01", Date{1970, 1, 1}, Thursday},
 		{"Test date: 2020-01-01", Date{2020, 1, 1}, Wednesday},
 		{"Test date: 2020-02-29", Date{2020, 2, 29}, Saturday},
+		{"Test date: 2020-03-15", Date{2020, 3, 15}, Sunday},
 		{"Test date: 2020-12-31", Date{2020, 12, 31}, Thursday},
 	}
 
