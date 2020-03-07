@@ -1,0 +1,3 @@
+test:
+	go test -covermode=count -coverprofile=count.out fmt ./...
+	go tool cover -html=count.out
