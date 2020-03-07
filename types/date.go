@@ -72,3 +72,11 @@ func (d Date) Weekday() Weekday {
 	}
 	return Weekday(dayNum)
 }
+
+func (d Date) Copy() *Date {
+	return &Date{
+		Year:        d.Year,
+		MonthOfYear: d.MonthOfYear,
+		DayOfMonth:  d.DayOfMonth,
+	}
+}
