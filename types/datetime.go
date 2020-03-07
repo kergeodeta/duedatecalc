@@ -9,8 +9,8 @@ type DateTime struct {
 	Time
 }
 
-func CreateDateTime(year, month, day, hour, minute, second int) *DateTime {
-	return &DateTime{
+func CreateDateTime(year, month, day, hour, minute, second int) DateTime {
+	return DateTime{
 		Date: Date{
 			Year:        year,
 			MonthOfYear: Month(month),
