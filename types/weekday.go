@@ -30,6 +30,7 @@ func (d Weekday) String() string {
 	return names[d-1]
 }
 
+// Megadja, hogy a hét adott napja hétvégére esik-e
 func (d Weekday) IsWeekend() bool {
 	switch d {
 	case Saturday, Sunday:

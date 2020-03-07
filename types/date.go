@@ -17,6 +17,7 @@ func (d Date) String() string {
 	return fmt.Sprintf("%d-%02d-%02d", d.Year, d.MonthOfYear, d.DayOfMonth)
 }
 
+// Megadja, hogy szökőév e az aktuális év
 func (d Date) IsLeapYear() bool {
 	if d.Year%400 == 0 {
 		return true
@@ -29,6 +30,7 @@ func (d Date) IsLeapYear() bool {
 	}
 }
 
+// Megadja, hogy hány nap van az aktuális hónapban
 func (d Date) DaysInMonth() int {
 	switch d.MonthOfYear {
 	case January, March, May, July, August, October, December:
@@ -44,6 +46,7 @@ func (d Date) DaysInMonth() int {
 	}
 }
 
+// 1970 óta eltelt napok számát adja meg a megadott dátumhoz képest.
 func (d Date) elapsedDays() (days int) {
 	// Eltelt évek napjainak összegzése
 	for i := yearOfUnix; i < d.Year; i++ {
@@ -64,6 +67,7 @@ func (d Date) elapsedDays() (days int) {
 	return
 }
 
+// Kiszámítja, hogy milyen napra esik a megadott dátum
 func (d Date) Weekday() Weekday {
 	elapsedDays := d.elapsedDays()
 	dayNum := int(math.Mod(float64(elapsedDays+4), 7))
@@ -73,6 +77,7 @@ func (d Date) Weekday() Weekday {
 	return Weekday(dayNum)
 }
 
+// Másolatot készít a Date structról és egy pointerrel tér vissza
 func (d Date) Copy() *Date {
 	return &Date{
 		Year:        d.Year,

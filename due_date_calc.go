@@ -46,22 +46,29 @@ func (i Issue) CalculateDueDate() types.DateTime {
 		remainingDays += 2
 	}
 
+	// Ha a feladat hosszabb mint 8 óra
 	if i.TurnaroundTime.Hours > 8 {
 		deadline.DayOfMonth += remainingDays
 		i.TurnaroundTime.Hours -= (i.TurnaroundTime.Hours / 8) * 8
 	}
 
 	deadline.Hours += i.TurnaroundTime.Hours
+	// Ha a feladat kilóg az adott napból
 	if deadline.Hours >= 17 {
 		deadline.Hours = deadline.Hours - 17 + 8
 		deadline.DayOfMonth += 1
 	}
 
+	// Hétvége. Szánsájn, bícs
 	handleWeekend(&deadline)
+
+	// TODO: évváltás lekezelése, ha esetleg év végén abbamaradna a munka
 
 	return deadline
 }
 
+// Kiszámítja, hogy az első nap mikor beérkezik a taszk mennyi idő tölthető el még vele az
+// aktuálus munkanap végéig
 func calculateFirstDayHours(dt types.DateTime) (startFraction types.Time) {
 	if dt.Minutes > 0 {
 		startFraction.Minutes = 60 - dt.Minutes
@@ -92,6 +99,8 @@ func hasWeekend(start types.Date, interval int) bool {
 	return false
 }
 
+// Amennyiben a teljesítési időszakba belecsúszik egy hétvége úgy meghosszabbítja a teljesítési időszakot
+// TODO: annak kezelése, ha több hétvége is belenyúlik a munkába
 func handleWeekend(d *types.DateTime) {
 	if d.Weekday().IsWeekend() {
 		d.DayOfMonth += 2
@@ -102,6 +111,7 @@ func handleWeekend(d *types.DateTime) {
 	}
 }
 
+// Kiszámítja, hogy az adott hónapban hányadika az első munkanap
 func firstWeekday(year int, month types.Month) (dayOfMonth int) {
 	date := types.Date{Year: year, MonthOfYear: month}
 	for i := 1; i < date.DaysInMonth(); i++ {
