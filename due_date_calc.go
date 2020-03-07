@@ -5,69 +5,111 @@ import (
 	"math"
 )
 
+const (
+	startOfDay = 9
+	endOfDay   = 17
+)
+
 type Issue struct {
 	Submitted      types.DateTime
 	TurnaroundTime types.Duration
 }
 
 func (i Issue) CalculateDueDate() types.DateTime {
-	deadline := types.DateTime{
-		Date: types.Date{
-			Year:        i.Submitted.Year,
-			MonthOfYear: i.Submitted.MonthOfYear,
-			DayOfMonth:  i.Submitted.DayOfMonth,
-		},
-		Time: types.Time{
-			Hours:   i.Submitted.Hours,
-			Minutes: i.Submitted.Minutes,
-			Seconds: i.Submitted.Seconds,
-		},
-	}
-
+	deadline := i.Submitted.Copy()
 	deadline.Minutes += i.TurnaroundTime.Minutes
 	if deadline.Minutes > 59 {
 		deadline.Minutes -= 60
 		deadline.Hours += 1
 	}
 
-	firstWeekday := func(year int, month types.Month) (dayOfMonth int) {
-		date := types.Date{Year: year, MonthOfYear: month}
-		for i := 1; i < date.DaysInMonth(); i++ {
-			date.DayOfMonth = i
-			if !date.Weekday().IsWeekend() {
-				return i
-			}
-		}
+	// Első napon elkölthető időmennyiség
+	startFraction := calculateFirstDayHours(i.Submitted)
+	// Első nap után visszamaradó időmennyiség
+	var remainingDuration types.Duration
+	if i.TurnaroundTime.Minutes-startFraction.Minutes < 0 {
+		remainingDuration.Minutes = 60 - (startFraction.Minutes - i.TurnaroundTime.Minutes)
+		remainingDuration.Hours = i.TurnaroundTime.Hours - startFraction.Hours - 1
+	} else {
+		remainingDuration.Minutes = i.TurnaroundTime.Minutes - startFraction.Minutes
+		remainingDuration.Hours = i.TurnaroundTime.Hours - startFraction.Hours
+	}
 
-		return 1
+	// Visszamaradó időmennyiség napokra szétosztva
+	remainingDays := int(math.Ceil(float64(remainingDuration.Hours) / 8.0))
+	if remainingDuration.Hours%8 == 0 && remainingDuration.Minutes > 0 {
+		remainingDays += 1
+	}
+
+	// Ha a munkaintervallumba beleesik egy hétvége, akkor növeljük a munkával töltendő napok számát
+	if hasWeekend(i.Submitted.Date, remainingDays) {
+		remainingDays += 2
 	}
 
 	if i.TurnaroundTime.Hours > 8 {
-		deadline.DayOfMonth += int(math.Ceil(float64(i.TurnaroundTime.Hours) / 8.0))
+		deadline.DayOfMonth += remainingDays
 		i.TurnaroundTime.Hours -= (i.TurnaroundTime.Hours / 8) * 8
-
-		if deadline.Date.Weekday().IsWeekend() {
-			deadline.DayOfMonth += 2
-			if deadline.Date.DaysInMonth() < deadline.DayOfMonth {
-				deadline.DayOfMonth = firstWeekday(deadline.Year, deadline.MonthOfYear+1)
-				deadline.MonthOfYear += 1
-			}
-		}
 	}
 
 	deadline.Hours += i.TurnaroundTime.Hours
 	if deadline.Hours >= 17 {
 		deadline.Hours = deadline.Hours - 17 + 8
 		deadline.DayOfMonth += 1
+	}
 
-		if deadline.Date.Weekday().IsWeekend() {
-			deadline.DayOfMonth += 2
-			if deadline.Date.DaysInMonth() < deadline.DayOfMonth {
-				deadline.DayOfMonth = firstWeekday(deadline.Year, deadline.MonthOfYear+1)
-				deadline.MonthOfYear += 1
-			}
+	handleWeekend(&deadline)
+
+	return deadline
+}
+
+func calculateFirstDayHours(dt types.DateTime) (startFraction types.Time) {
+	if dt.Minutes > 0 {
+		startFraction.Minutes = 60 - dt.Minutes
+	}
+
+	if dt.Minutes > 0 {
+		startFraction.Hours = endOfDay - dt.Hours - 1
+	} else {
+		startFraction.Hours = endOfDay - dt.Hours
+	}
+
+	if dt.Hours < startOfDay {
+		startFraction.Hours = 8
+	}
+
+	return
+}
+
+// Beérkezési dátumtól számítva van-e az időintervallumban hétvége
+func hasWeekend(start types.Date, interval int) bool {
+	act := start.Copy()
+	for i := 0; i < interval; i++ {
+		act.DayOfMonth += i
+		if act.Weekday().IsWeekend() {
+			return true
+		}
+	}
+	return false
+}
+
+func handleWeekend(d *types.DateTime) {
+	if d.Weekday().IsWeekend() {
+		d.DayOfMonth += 2
+		if d.Date.DaysInMonth() < d.DayOfMonth {
+			d.DayOfMonth = firstWeekday(d.Year, d.MonthOfYear+1)
+			d.MonthOfYear += 1
+		}
+	}
+}
+
+func firstWeekday(year int, month types.Month) (dayOfMonth int) {
+	date := types.Date{Year: year, MonthOfYear: month}
+	for i := 1; i < date.DaysInMonth(); i++ {
+		date.DayOfMonth = i
+		if !date.Weekday().IsWeekend() {
+			return i
 		}
 	}
 
-	return deadline
+	return 1
 }
