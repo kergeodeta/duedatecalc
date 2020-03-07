@@ -44,24 +44,25 @@ func (d Date) DaysInMonth() int {
 	}
 }
 
-func (d Date) Weekday() Weekday {
-	var elapsedDays int
+func (d Date) elapsedDays() (days int) {
 	// Eltelt évek napjainak összegzése
 	for i := yearOfUnix; i < d.Year; i++ {
 		if (Date{Year: i}.IsLeapYear()) {
-			elapsedDays += 366
+			days += 366
 		} else {
-			elapsedDays += 365
+			days += 365
 		}
 	}
 
 	// Aktuális évben eltelt hónapok napjainak összegzése
 	for i := January; i < d.MonthOfYear; i++ {
-		elapsedDays += Date{Year: d.Year, MonthOfYear: i}.DaysInMonth()
+		days += Date{Year: d.Year, MonthOfYear: i}.DaysInMonth()
 	}
 
 	// Aktuális hónapban eltelt napok hozzáaádása.
-	elapsedDays += d.DayOfMonth - 1
+	days += d.DayOfMonth - 1
+	return
+}
 
 func (d Date) Weekday() Weekday {
 	elapsedDays := d.elapsedDays()
